@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FiestaMap - Encuentra tu próxima fiesta</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="logo">FiestaMap</h1>
+                <nav class="nav">
+                    <button class="nav-btn active" data-view="map">Mapa</button>
+                    <button class="nav-btn" data-view="recommendations">Recomendadas</button>
+                    <button class="nav-btn" data-view="organize">Organizar</button>
+                    <button class="nav-btn" data-view="previas">Previas</button>
+                    <button class="nav-btn" data-view="combis">Combis</button>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Map View -->
+            <div id="map-view" class="view active">
+                <div class="search-bar">
+                    <input type="text" placeholder="Buscar fiestas..." class="search-input">
+                    <button class="filter-btn">Filtros</button>
+                </div>
+                <div id="map" class="map-container"></div>
+            </div>
+
+            <!-- Recommendations View -->
+            <div id="recommendations-view" class="view">
+                <div class="section-header">
+                    <h2>Fiestas Recomendadas</h2>
+                    <p>Las mejores opciones para esta noche</p>
+                </div>
+                <div class="party-grid" id="recommended-parties"></div>
+            </div>
+
+            <!-- Organize View -->
+            <div id="organize-view" class="view">
+                <div class="section-header">
+                    <h2>Organizar Fiesta</h2>
+                    <p>Todo lo que necesitas para tu evento</p>
+                </div>
+                <div class="organize-categories">
+                    <div class="category-card">
+                        <h3>Lugares</h3>
+                        <p>Alquila el espacio perfecto</p>
+                        <button class="category-btn" data-category="venues">Ver opciones</button>
+                    </div>
+                    <div class="category-card">
+                        <h3>DJs</h3>
+                        <p>Los mejores DJs de la ciudad</p>
+                        <button class="category-btn" data-category="djs">Ver opciones</button>
+                    </div>
+                    <div class="category-card">
+                        <h3>Equipos</h3>
+                        <p>Sonido, luces y más</p>
+                        <button class="category-btn" data-category="equipment">Ver opciones</button>
+                    </div>
+                    <div class="category-card">
+                        <h3>Organizadores</h3>
+                        <p>Profesionales en eventos</p>
+                        <button class="category-btn" data-category="organizers">Ver opciones</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Previas View -->
+            <div id="previas-view" class="view">
+                <div class="section-header">
+                    <h2>Previas Privadas</h2>
+                    <p>Únete a previas antes de salir</p>
+                </div>
+                <div class="party-grid" id="previas-list"></div>
+            </div>
+
+            <!-- Combis View -->
+            <div id="combis-view" class="view">
+                <div class="section-header">
+                    <h2>Combis Compartidas</h2>
+                    <p>Viaja seguro y económico</p>
+                </div>
+                <div class="party-grid" id="combis-list"></div>
+            </div>
+        </main>
+
+        <!-- Party Detail Modal -->
+        <div id="party-modal" class="modal">
+            <div class="modal-content">
+                <button class="modal-close">&times;</button>
+                <div id="party-details"></div>
+            </div>
+        </div>
+
+        <!-- Filter Modal -->
+        <div id="filter-modal" class="modal">
+            <div class="modal-content">
+                <button class="modal-close">&times;</button>
+                <h3>Filtros</h3>
+                <div class="filter-options">
+                    <div class="filter-group">
+                        <label>Precio entrada</label>
+                        <select id="price-filter">
+                            <option value="">Todos</option>
+                            <option value="free">Gratis</option>
+                            <option value="low">Hasta $2000</option>
+                            <option value="medium">$2000 - $5000</option>
+                            <option value="high">Más de $5000</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Género musical</label>
+                        <select id="genre-filter">
+                            <option value="">Todos</option>
+                            <option value="reggaeton">Reggaeton</option>
+                            <option value="electronica">Electrónica</option>
+                            <option value="cumbia">Cumbia</option>
+                            <option value="rock">Rock</option>
+                        </select>
+                    </div>
+                    <button class="apply-filters-btn">Aplicar filtros</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recommendations Type Selector -->
+        <div class="recommendations-tabs" id="recommendations-tabs" style="display: none;">
+            <button class="tab-btn active" data-type="boliche">Boliches</button>
+            <button class="tab-btn" data-type="after">After</button>
+            <button class="tab-btn" data-type="otros">Otros</button>
+        </div>
+
+        <!-- Map Controls -->
+        <div class="map-controls" id="map-controls" style="display: none;">
+            <button class="control-btn" id="toggle-restaurants">🍟 Restaurantes</button>
+        </div>
+
+        <!-- Organization Services Modal -->
+        <div id="services-modal" class="modal">
+            <div class="modal-content">
+                <button class="modal-close">&times;</button>
+                <div id="services-content"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="data.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
