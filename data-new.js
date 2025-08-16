@@ -462,3 +462,4 @@ function getRestaurantById(id) {
     return restaurantsData.find(restaurant => restaurant.id === id);
 }
 
+
