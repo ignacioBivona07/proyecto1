@@ -205,9 +205,9 @@ function setupEventListeners() {
 function setupRecommendationTabs() {
     const tabsContainer = document.getElementById('recommendations-tabs');
     
-    // Create tab buttons
-    const tabs = ['boliche', 'after', 'otros'];
-    const tabNames = { 'boliche': 'Boliches', 'after': 'After', 'otros': 'Otros' };
+    // Create tab buttons - Updated to include fiestas
+    const tabs = ['boliche', 'fiesta', 'after'];
+    const tabNames = { 'boliche': 'Boliches', 'fiesta': 'Fiestas', 'after': 'After' };
     
     tabsContainer.innerHTML = tabs.map(type => 
         `<button class="tab-btn ${type === 'boliche' ? 'active' : ''}" data-type="${type}">${tabNames[type]}</button>`
@@ -268,6 +268,10 @@ function loadRecommendedParties(type = 'boliche') {
     
     container.innerHTML = recommendedParties.map(party => `
         <div class="party-card" onclick="showPartyDetails(${party.id})">
+            <div class="party-type-indicator party-type-${party.type}">
+                ${party.type === 'boliche' ? 'BOLICHE' : party.type === 'fiesta' ? 'FIESTA' : 'AFTER'}
+            </div>
+            ${party.ageRestriction ? `<div class="age-restriction">${party.ageRestriction}</div>` : ''}
             <h3>${party.name}</h3>
             <div class="party-info">
                 <span>📍 ${party.address}</span>
@@ -275,6 +279,7 @@ function loadRecommendedParties(type = 'boliche') {
                 <span>⭐ ${party.rating} (${party.reviews} reseñas)</span>
                 <span>🕒 ${party.schedule}</span>
                 ${party.discount ? `<span style="color: #4CAF50;">🎉 ${party.discount}</span>` : ''}
+                ${party.eventDate ? `<span style="color: #ffc107;">📅 ${party.eventDate}</span>` : ''}
             </div>
             <div class="party-price">
                 ${party.entryPrice === 0 ? 'ENTRADA GRATIS' : '$' + party.entryPrice}
@@ -345,13 +350,13 @@ function showOrganizationServices(category) {
     };
 
     const content = `
-        <h3>Top ${categoryNames[category]}</h3>
+        <h3>${categoryNames[category]}</h3>
         <div class="services-list">
             ${services.map(service => `
                 <div class="service-card">
                     <div class="service-header">
                         <h4>${service.name}</h4>
-                        <span class="service-rank">#${service.rank}</span>
+                        ${category !== 'organizers' && service.rank ? `<span class="service-rank">#${service.rank}</span>` : ''}
                     </div>
                     <div class="service-info">
                         ${category === 'venues' ? `
@@ -378,6 +383,9 @@ function showOrganizationServices(category) {
                           category === 'equipment' ? `$${service.pricePerDay}/día` :
                           service.priceRange}
                     </div>
+                    <button class="hire-service-btn" onclick="showPaymentModal()">
+                        Contratar Servicio
+                    </button>
                 </div>
             `).join('')}
         </div>
@@ -404,8 +412,27 @@ function showPartyDetails(partyId) {
     const estimatedDistance = Math.random() * 15 + 2; // 2-17 km
     const uberCost = calculateUberCost(estimatedDistance);
 
+    // Generate reviews HTML
+    const reviewsHtml = party.userReviews && party.userReviews.length > 0 ? 
+        party.userReviews.map(review => `
+            <div class="review-item">
+                <div class="review-header">
+                    <span class="review-user">${review.user}</span>
+                    <div>
+                        <span class="review-rating">${'★'.repeat(review.rating)}${'☆'.repeat(5-review.rating)}</span>
+                        <span class="review-date">${review.date}</span>
+                    </div>
+                </div>
+                <div class="review-comment">${review.comment}</div>
+            </div>
+        `).join('') : '<p>No hay reseñas aún. ¡Sé el primero en escribir una!</p>';
+
     document.getElementById('party-details').innerHTML = `
         <div class="party-detail">
+            <div class="party-type-indicator party-type-${party.type}">
+                ${party.type === 'boliche' ? 'BOLICHE' : party.type === 'fiesta' ? 'FIESTA' : 'AFTER'}
+            </div>
+            ${party.ageRestriction ? `<div class="age-restriction">${party.ageRestriction}</div>` : ''}
             <h2>${party.name}</h2>
             <p>${party.description}</p>
             
@@ -418,12 +445,18 @@ function showPartyDetails(partyId) {
                 <h4>💰 Entrada</h4>
                 <p>${party.entryPrice === 0 ? 'GRATIS' : '$' + party.entryPrice}</p>
                 ${party.discount ? `<p style="color: #4CAF50;">${party.discount}</p>` : ''}
+                ${party.entryPrice > 0 ? `
+                    <button class="write-review-btn" onclick="showPaymentModal()" style="background: #007bff;">
+                        Pagar Entrada
+                    </button>
+                ` : ''}
             </div>
             
             <div class="detail-section">
                 <h4>🎵 Música</h4>
-                <p><strong>${party.type === 'after' ? 'Organizador:' : 'DJ:'}</strong> ${party.organizer || party.dj}</p>
+                <p><strong>${party.type === 'after' || party.type === 'fiesta' ? 'Organizador:' : 'DJ:'}</strong> ${party.organizer || party.dj}</p>
                 <p><strong>Género:</strong> ${party.genre.charAt(0).toUpperCase() + party.genre.slice(1)}</p>
+                ${party.eventDate ? `<p><strong>Fecha del evento:</strong> ${party.eventDate}</p>` : ''}
             </div>
             
             <div class="detail-section">
@@ -442,6 +475,12 @@ function showPartyDetails(partyId) {
             <div class="detail-section">
                 <h4>⭐ Reseñas</h4>
                 <p>${party.rating}/5 estrellas (${party.reviews} reseñas)</p>
+                <button class="write-review-btn" onclick="showReviewModal(${party.id})">
+                    Escribir Reseña
+                </button>
+                <div class="reviews-section">
+                    ${reviewsHtml}
+                </div>
             </div>
             
             <div class="detail-section">
@@ -482,9 +521,32 @@ function joinCombi(combiId) {
     }
 }
 
-// Request Uber (mock function)
+// Request Uber (mock function) - Updated to show payment modal
 function requestUber(destination) {
-    alert(`Redirigiendo a Uber para ir a ${destination}...\n\nEn una app real, esto abriría la aplicación de Uber con el destino preconfigurado.`);
+    showPaymentModal();
+}
+
+// Payment Modal Functions
+function showPaymentModal() {
+    showModal('payment-modal');
+}
+
+// Review Modal Functions
+function showReviewModal(partyId) {
+    document.getElementById('review-form').dataset.partyId = partyId;
+    showModal('review-modal');
+}
+
+// Submit review function
+function submitReview(partyId, userName, rating, comment) {
+    if (addUserReview(partyId, userName, rating, comment)) {
+        alert('¡Reseña enviada exitosamente!');
+        hideModal('review-modal');
+        // Refresh party details to show new review
+        showPartyDetails(partyId);
+    } else {
+        alert('Error al enviar la reseña. Inténtalo de nuevo.');
+    }
 }
 
 // Show modal
@@ -547,3 +609,106 @@ setInterval(() => {
             break;
     }
 }, 30000); // Update every 30 seconds
+
+// Payment and Review Modal Event Listeners
+document.addEventListener('DOMContentLoaded', function() {
+    // Payment form submission
+    const paymentForm = document.getElementById('payment-form');
+    if (paymentForm) {
+        paymentForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const cardNumber = document.getElementById('card-number').value.trim();
+            const expiry = document.getElementById('expiry').value.trim();
+            const cvv = document.getElementById('cvv').value.trim();
+            
+            if (!cardNumber || !expiry || !cvv) {
+                alert('Por favor, complete todos los campos de la tarjeta.');
+                return;
+            }
+            
+            alert('¡Pago procesado exitosamente!');
+            hideModal('payment-modal');
+            // Reset form
+            paymentForm.reset();
+        });
+    }
+
+    // MercadoPago payment button
+    const mpButton = document.getElementById('mp-payment-btn');
+    if (mpButton) {
+        mpButton.addEventListener('click', function() {
+            alert('Redirigiendo a MercadoPago...\n\nEn una app real, esto abriría MercadoPago.');
+            hideModal('payment-modal');
+        });
+    }
+
+    // Review form submission
+    const reviewForm = document.getElementById('review-form');
+    if (reviewForm) {
+        reviewForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const partyId = parseInt(this.dataset.partyId);
+            const userName = document.getElementById('reviewer-name').value.trim();
+            const rating = parseInt(document.getElementById('rating-value').value);
+            const comment = document.getElementById('review-comment').value.trim();
+            
+            if (!userName || !comment) {
+                alert('Por favor, complete todos los campos.');
+                return;
+            }
+            
+            submitReview(partyId, userName, rating, comment);
+            // Reset form
+            reviewForm.reset();
+            document.getElementById('rating-value').value = '5';
+            updateStarRating(5);
+        });
+    }
+
+    // Star rating functionality
+    const stars = document.querySelectorAll('.star');
+    stars.forEach(star => {
+        star.addEventListener('click', function() {
+            const rating = parseInt(this.dataset.rating);
+            document.getElementById('rating-value').value = rating;
+            updateStarRating(rating);
+        });
+
+        star.addEventListener('mouseover', function() {
+            const rating = parseInt(this.dataset.rating);
+            highlightStars(rating);
+        });
+    });
+
+    // Reset star highlighting on mouse leave
+    const starRating = document.getElementById('star-rating');
+    if (starRating) {
+        starRating.addEventListener('mouseleave', function() {
+            const currentRating = parseInt(document.getElementById('rating-value').value);
+            updateStarRating(currentRating);
+        });
+    }
+});
+
+// Star rating helper functions
+function updateStarRating(rating) {
+    const stars = document.querySelectorAll('.star');
+    stars.forEach((star, index) => {
+        if (index < rating) {
+            star.classList.add('active');
+        } else {
+            star.classList.remove('active');
+        }
+    });
+}
+
+function highlightStars(rating) {
+    const stars = document.querySelectorAll('.star');
+    stars.forEach((star, index) => {
+        if (index < rating) {
+            star.style.color = '#FFD700';
+        } else {
+            star.style.color = 'rgba(255, 255, 255, 0.3)';
+        }
+    });
+}
