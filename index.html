@@ -150,6 +150,63 @@
                 <div id="services-content"></div>
             </div>
         </div>
+
+        <!-- Payment Modal -->
+        <div id="payment-modal" class="modal">
+            <div class="modal-content">
+                <button class="modal-close">&times;</button>
+                <h3>Método de Pago</h3>
+                <p>Elija cómo desea pagar:</p>
+                <form id="payment-form">
+                    <div class="payment-option">
+                        <label for="card-number">Número de tarjeta:</label>
+                        <input type="text" id="card-number" name="card-number" placeholder="1234 5678 9012 3456" required>
+                    </div>
+                    <div class="payment-option">
+                        <label for="expiry">Fecha de expiración:</label>
+                        <input type="text" id="expiry" name="expiry" placeholder="MM/AA" required>
+                    </div>
+                    <div class="payment-option">
+                        <label for="cvv">CVV:</label>
+                        <input type="text" id="cvv" name="cvv" placeholder="123" required>
+                    </div>
+                    <button type="submit" class="apply-filters-btn">Pagar con Tarjeta</button>
+                </form>
+                <div style="text-align: center; margin-top: 1rem;">
+                    <button id="mp-payment-btn" class="category-btn">Pagar con MercadoPago</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Review Modal -->
+        <div id="review-modal" class="modal">
+            <div class="modal-content">
+                <button class="modal-close">&times;</button>
+                <h3>Escribir Reseña</h3>
+                <form id="review-form">
+                    <div class="review-option">
+                        <label for="reviewer-name">Tu nombre:</label>
+                        <input type="text" id="reviewer-name" name="reviewer-name" placeholder="Ingresa tu nombre" required>
+                    </div>
+                    <div class="review-option">
+                        <label for="rating">Calificación:</label>
+                        <div class="star-rating" id="star-rating">
+                            <span class="star" data-rating="1">★</span>
+                            <span class="star" data-rating="2">★</span>
+                            <span class="star" data-rating="3">★</span>
+                            <span class="star" data-rating="4">★</span>
+                            <span class="star" data-rating="5">★</span>
+                        </div>
+                        <input type="hidden" id="rating-value" name="rating" value="5">
+                    </div>
+                    <div class="review-option">
+                        <label for="review-comment">Tu reseña:</label>
+                        <textarea id="review-comment" name="review-comment" placeholder="Comparte tu experiencia..." rows="4" required></textarea>
+                    </div>
+                    <button type="submit" class="apply-filters-btn">Enviar Reseña</button>
+                </form>
+            </div>
+        </div>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
