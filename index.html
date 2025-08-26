@@ -12,7 +12,13 @@
         <!-- Header -->
         <header class="header">
             <div class="header-content">
-                <h1 class="logo">FiestaMap</h1>
+                <div class="header-left">
+                    <h1 class="logo">FiestaMap</h1>
+                    <div class="main-search">
+                        <input type="text" placeholder="Buscar fiestas, boliches..." class="main-search-input" id="main-search">
+                        <button class="main-filter-btn">Filtros</button>
+                    </div>
+                </div>
                 <nav class="nav">
                     <button class="nav-btn active" data-view="map">Mapa</button>
                     <button class="nav-btn" data-view="recommendations">Recomendadas</button>
@@ -22,6 +28,19 @@
                 </nav>
             </div>
         </header>
+
+        <!-- Recommendations Type Selector -->
+        <div class="recommendations-tabs" id="recommendations-tabs">
+            <button class="tab-btn active" data-type="boliche">Boliches</button>
+            <button class="tab-btn" data-type="joda">Jodas</button>
+        </div>
+
+        <!-- Map Controls -->
+        <div class="map-controls" id="map-controls">
+            <button class="control-btn" id="toggle-restaurants">🍟 Restaurantes</button>
+            <button class="control-btn" id="toggle-combis">🚐 Combis</button>
+            <button class="control-btn" id="toggle-parkings">🅿️ Parkings</button>
+        </div>
 
         <!-- Main Content -->
         <main class="main-content">
@@ -47,29 +66,10 @@
             <div id="organize-view" class="view">
                 <div class="section-header">
                     <h2>Organizar Fiesta</h2>
-                    <p>Todo lo que necesitas para tu evento</p>
+                    <p>Crea tu propio evento</p>
                 </div>
-                <div class="organize-categories">
-                    <div class="category-card">
-                        <h3>Lugares</h3>
-                        <p>Alquila el espacio perfecto</p>
-                        <button class="category-btn" data-category="venues">Ver opciones</button>
-                    </div>
-                    <div class="category-card">
-                        <h3>DJs</h3>
-                        <p>Los mejores DJs de la ciudad</p>
-                        <button class="category-btn" data-category="djs">Ver opciones</button>
-                    </div>
-                    <div class="category-card">
-                        <h3>Equipos</h3>
-                        <p>Sonido, luces y más</p>
-                        <button class="category-btn" data-category="equipment">Ver opciones</button>
-                    </div>
-                    <div class="category-card">
-                        <h3>Organizadores</h3>
-                        <p>Profesionales en eventos</p>
-                        <button class="category-btn" data-category="organizers">Ver opciones</button>
-                    </div>
+                <div class="organize-content">
+                    <p>Funcionalidad de organización en desarrollo...</p>
                 </div>
             </div>
 
@@ -78,6 +78,15 @@
                 <div class="section-header">
                     <h2>Previas Privadas</h2>
                     <p>Únete a previas antes de salir</p>
+                    <div class="previas-controls">
+                        <div class="previas-search">
+                            <input type="text" placeholder="Buscar previas..." class="previas-search-input" id="previas-search">
+                        </div>
+                        <button class="create-previa-btn" onclick="showCreatePreviaModal()">
+                            <span class="plus-icon">+</span>
+                            Crear Previa
+                        </button>
+                    </div>
                 </div>
                 <div class="party-grid" id="previas-list"></div>
             </div>
@@ -131,44 +140,24 @@
             </div>
         </div>
 
-        <!-- Recommendations Type Selector -->
-        <div class="recommendations-tabs" id="recommendations-tabs" style="display: none;">
-            <button class="tab-btn active" data-type="boliche">Boliches</button>
-            <button class="tab-btn" data-type="after">After</button>
-            <button class="tab-btn" data-type="otros">Otros</button>
-        </div>
-
-        <!-- Map Controls -->
-        <div class="map-controls" id="map-controls" style="display: none;">
-            <button class="control-btn" id="toggle-restaurants">🍟 Restaurantes</button>
-        </div>
-
-        <!-- Organization Services Modal -->
-        <div id="services-modal" class="modal">
-            <div class="modal-content">
-                <button class="modal-close">&times;</button>
-                <div id="services-content"></div>
-            </div>
-        </div>
-
         <!-- Payment Modal -->
         <div id="payment-modal" class="modal">
             <div class="modal-content">
                 <button class="modal-close">&times;</button>
                 <h3>Método de Pago</h3>
-                <p>Elija cómo desea pagar:</p>
+                <div class="payment-amount" id="payment-amount"></div>
                 <form id="payment-form">
                     <div class="payment-option">
                         <label for="card-number">Número de tarjeta:</label>
-                        <input type="text" id="card-number" name="card-number" placeholder="1234 5678 9012 3456" required>
+                        <input type="text" id="card-number" placeholder="1234 5678 9012 3456" required>
                     </div>
                     <div class="payment-option">
                         <label for="expiry">Fecha de expiración:</label>
-                        <input type="text" id="expiry" name="expiry" placeholder="MM/AA" required>
+                        <input type="text" id="expiry" placeholder="MM/AA" required>
                     </div>
                     <div class="payment-option">
                         <label for="cvv">CVV:</label>
-                        <input type="text" id="cvv" name="cvv" placeholder="123" required>
+                        <input type="text" id="cvv" placeholder="123" required>
                     </div>
                     <button type="submit" class="apply-filters-btn">Pagar con Tarjeta</button>
                 </form>
@@ -186,7 +175,7 @@
                 <form id="review-form">
                     <div class="review-option">
                         <label for="reviewer-name">Tu nombre:</label>
-                        <input type="text" id="reviewer-name" name="reviewer-name" placeholder="Ingresa tu nombre" required>
+                        <input type="text" id="reviewer-name" placeholder="Ingresa tu nombre" required>
                     </div>
                     <div class="review-option">
                         <label for="rating">Calificación:</label>
@@ -197,13 +186,82 @@
                             <span class="star" data-rating="4">★</span>
                             <span class="star" data-rating="5">★</span>
                         </div>
-                        <input type="hidden" id="rating-value" name="rating" value="5">
+                        <input type="hidden" id="rating-value" value="5">
                     </div>
                     <div class="review-option">
                         <label for="review-comment">Tu reseña:</label>
-                        <textarea id="review-comment" name="review-comment" placeholder="Comparte tu experiencia..." rows="4" required></textarea>
+                        <textarea id="review-comment" placeholder="Comparte tu experiencia..." rows="4" required></textarea>
                     </div>
                     <button type="submit" class="apply-filters-btn">Enviar Reseña</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Join Previa Modal -->
+        <div id="join-previa-modal" class="modal">
+            <div class="modal-content">
+                <button class="modal-close">&times;</button>
+                <h3>Solicitar Unirse a Previa</h3>
+                <div id="previa-details"></div>
+                <form id="join-previa-form">
+                    <div class="review-option">
+                        <label for="join-name">Tu nombre:</label>
+                        <input type="text" id="join-name" required>
+                    </div>
+                    <div class="review-option">
+                        <label for="join-message">Mensaje (opcional):</label>
+                        <textarea id="join-message" rows="3" placeholder="Cuéntanos por qué quieres unirte..."></textarea>
+                    </div>
+                    <div class="review-option">
+                        <label for="join-code">Código de acceso (si tienes uno):</label>
+                        <input type="text" id="join-code" placeholder="Ingresa el código">
+                    </div>
+                    <button type="submit" class="apply-filters-btn">Enviar Solicitud</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Create Previa Modal -->
+        <div id="create-previa-modal" class="modal">
+            <div class="modal-content">
+                <button class="modal-close">&times;</button>
+                <h3>Crear Nueva Previa</h3>
+                <form id="create-previa-form">
+                    <div class="review-option">
+                        <label for="previa-name">Nombre de la previa *:</label>
+                        <input type="text" id="previa-name" required>
+                    </div>
+                    <div class="review-option">
+                        <label for="previa-description">Descripción *:</label>
+                        <textarea id="previa-description" rows="3" required></textarea>
+                    </div>
+                    <div class="review-option">
+                        <label for="previa-location">Ubicación *:</label>
+                        <input type="text" id="previa-location" required>
+                    </div>
+                    <div class="review-option">
+                        <label for="previa-date">Fecha y hora *:</label>
+                        <input type="datetime-local" id="previa-date" required>
+                    </div>
+                    <div class="review-option">
+                        <label for="previa-max-guests">Máximo de invitados *:</label>
+                        <input type="number" id="previa-max-guests" min="2" max="50" required>
+                    </div>
+                    <div class="review-option">
+                        <label for="previa-price">Precio de entrada (opcional):</label>
+                        <input type="number" id="previa-price" min="0" placeholder="0 = Gratis">
+                    </div>
+                    <div class="review-option">
+                        <label for="previa-requirements">Requisitos:</label>
+                        <textarea id="previa-requirements" rows="2" placeholder="Ej: Traer bebida, ser mayor de edad..."></textarea>
+                    </div>
+                    <div class="review-option">
+                        <label>
+                            <input type="checkbox" id="previa-auto-accept"> 
+                            Generar código de acceso automático
+                        </label>
+                    </div>
+                    <button type="submit" class="apply-filters-btn">Crear Previa</button>
                 </form>
             </div>
         </div>
