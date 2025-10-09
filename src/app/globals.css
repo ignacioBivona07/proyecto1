@@ -1,0 +1,120 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+ 
+@layer base {
+  :root {
+    --background: 220 10% 4%;
+    --foreground: 0 0% 98%;
+    --card: 220 10% 6%;
+    --card-foreground: 0 0% 98%;
+    --popover: 220 10% 6%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 262 83% 58%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 215 27% 12%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 215 27% 12%;
+    --muted-foreground: 217 10% 64%;
+    --accent: 215 27% 12%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 85% 60%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 215 27% 18%;
+    --input: 215 27% 18%;
+    --ring: 262 83% 58%;
+    --radius: 0.5rem;
+  }
+}
+ 
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Mobile-first responsive styles */
+@layer components {
+  .app-container {
+    @apply flex flex-col min-h-screen relative;
+  }
+  
+  .mobile-header {
+    @apply sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur;
+  }
+  
+  .mobile-nav {
+    @apply fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur border-t border-border;
+  }
+  
+  .mobile-content {
+    @apply flex-1 pb-20 pt-16;
+  }
+  
+  /* Map specific styles */
+  .map-container {
+    @apply w-full h-full min-h-[400px] relative;
+  }
+  
+  .leaflet-container {
+    @apply h-full w-full;
+  }
+  
+  /* Custom scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-muted;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-primary rounded-full;
+  }
+  
+  /* Nightlife theme specific */
+  .nightlife-gradient {
+    background: linear-gradient(135deg, #8B5CF6 0%, #EF4444 100%);
+  }
+  
+  .nightlife-card {
+    @apply bg-card/50 backdrop-blur-sm border border-border rounded-lg;
+  }
+  
+  .nightlife-button {
+    @apply bg-gradient-to-r from-nightlife-primary to-nightlife-secondary text-white font-medium py-2 px-4 rounded-lg hover:opacity-90 transition-opacity;
+  }
+  
+  .venue-marker {
+    @apply w-8 h-8 rounded-full border-2 border-white shadow-lg flex items-center justify-center text-white font-bold text-sm;
+  }
+  
+  .venue-marker.boliche {
+    @apply bg-blue-500;
+  }
+  
+  .venue-marker.fiesta {
+    @apply bg-red-500;
+  }
+  
+  .venue-marker.restaurant {
+    @apply bg-yellow-500;
+  }
+  
+  .venue-marker.parking {
+    @apply bg-green-500;
+  }
+  
+  /* Loading animations */
+  .loading-pulse {
+    @apply animate-pulse bg-gradient-to-r from-muted to-muted/50;
+  }
+  
+  .loading-skeleton {
+    @apply animate-pulse bg-muted rounded;
+  }
+}

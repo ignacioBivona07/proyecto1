@@ -1,0 +1,588 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User Management
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String?
+  name      String?
+  surname   String?
+  dni       String?  @unique
+  phone     String?
+  avatar    String?
+  birthDate DateTime?
+  isVerified Boolean @default(false)
+  isActive   Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // User preferences
+  preferences     UserPreferences?
+  userLocations   UserLocation[]
+  userBehaviors   UserBehavior[]
+  
+  // Social features
+  organizedEvents Event[]
+  tickets         Ticket[]
+  reviews         Review[]
+  
+  // Previas
+  hostedPrevias   Previa[] @relation("PreviaHost")
+  previaMembers   PreviaMember[]
+  previaMessages  PreviaChatMessage[]
+  previaRequests  PreviaJoinRequest[]
+  
+  // Combis
+  combiGroups     CombiPassenger[]
+  
+  // Payments
+  payments        Payment[]
+
+  @@map("users")
+}
+
+model UserPreferences {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Music preferences
+  musicGenres    String[]
+  venueTypes     String[]
+  priceRangeLow  Int      @default(0)
+  priceRangeHigh Int      @default(10000)
+  
+  // Location preferences  
+  maxDistance    Float    @default(50.0) // km
+  
+  // Privacy settings
+  shareLocation  Boolean  @default(false)
+  showToFriends  Boolean  @default(false)
+  
+  // Notification preferences
+  eventNotifications Boolean @default(true)
+  previaNotifications Boolean @default(true)
+  chatNotifications Boolean @default(true)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("user_preferences")
+}
+
+model UserLocation {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  latitude  Float
+  longitude Float
+  address   String?
+  city      String
+  isActive  Boolean  @default(true)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("user_locations")
+}
+
+model UserBehavior {
+  id       String @id @default(cuid())
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  eventId  String?
+  venueId  String?
+  event    Event?  @relation(fields: [eventId], references: [id])
+  venue    Venue?  @relation(fields: [venueId], references: [id])
+  
+  action   String // "viewed", "liked", "attended", "purchased"
+  metadata Json?  // Additional behavior data
+  
+  createdAt DateTime @default(now())
+
+  @@map("user_behaviors")
+}
+
+// Venues & Events
+model Venue {
+  id          String @id @default(cuid())
+  name        String
+  type        VenueType @relation(fields: [typeId], references: [id])
+  typeId      String
+  
+  address     String
+  latitude    Float
+  longitude   Float
+  city        String
+  
+  description String?
+  capacity    Int
+  hasParking  Boolean @default(false)
+  parkingPrice Int?
+  
+  // Operating hours
+  openingHours Json? // Flexible hours per day
+  
+  // Social features
+  rating      Float   @default(0)
+  reviewCount Int     @default(0)
+  
+  isActive    Boolean @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  events        Event[]
+  reviews       Review[]
+  userBehaviors UserBehavior[]
+  menuItems     VenueMenuItem[]
+  
+  @@map("venues")
+}
+
+model VenueType {
+  id          String @id @default(cuid())
+  name        String @unique // "boliche", "bar", "restaurant", "parking"
+  displayName String
+  icon        String?
+  color       String @default("#000000")
+  
+  venues      Venue[]
+  
+  @@map("venue_types")
+}
+
+model VenueMenuItem {
+  id      String @id @default(cuid())
+  venueId String
+  venue   Venue  @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  
+  name    String
+  price   Int
+  category String // "drink", "food", "entrance"
+  
+  isActive Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("venue_menu_items")
+}
+
+model Event {
+  id          String @id @default(cuid())
+  name        String
+  description String?
+  
+  venueId     String?
+  venue       Venue?  @relation(fields: [venueId], references: [id])
+  
+  organizerId String
+  organizer   User   @relation(fields: [organizerId], references: [id])
+  
+  // Event details
+  eventDate   DateTime
+  startTime   DateTime
+  endTime     DateTime?
+  
+  // Pricing
+  basePrice   Int
+  isRecurrent Boolean @default(false)
+  recurrencePattern String? // "weekly", "monthly", etc.
+  
+  // Location (for events without fixed venue)
+  address     String?
+  latitude    Float?
+  longitude   Float?
+  city        String
+  
+  // Event specifications
+  ageRestriction String @default("+18")
+  capacity      Int
+  currentAttendees Int @default(0)
+  
+  // Categories
+  musicGenres   MusicGenre[]
+  eventTypes    EventType[]
+  
+  isActive      Boolean @default(true)
+  isPublished   Boolean @default(false)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relations
+  tickets       Ticket[]
+  guestLists    GuestList[]
+  userBehaviors UserBehavior[]
+  promotions    Promotion[]
+  
+  @@map("events")
+}
+
+model MusicGenre {
+  id          String @id @default(cuid())
+  name        String @unique
+  displayName String
+  color       String @default("#000000")
+  
+  events      Event[]
+  
+  @@map("music_genres")
+}
+
+model EventType {
+  id          String @id @default(cuid())
+  name        String @unique
+  displayName String
+  
+  events      Event[]
+  
+  @@map("event_types")
+}
+
+// Ticketing & Commerce
+model Ticket {
+  id        String @id @default(cuid())
+  eventId   String
+  event     Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  
+  userId    String
+  user      User   @relation(fields: [userId], references: [id])
+  
+  ticketType String // "general", "vip", "early_bird"
+  price      Int
+  quantity   Int    @default(1)
+  
+  // Guest list information
+  guestName    String?
+  guestSurname String?
+  guestDNI     String?
+  
+  status       TicketStatus @default(PENDING)
+  purchaseDate DateTime     @default(now())
+  
+  // QR code for validation
+  qrCode       String?
+  isValidated  Boolean @default(false)
+  validatedAt  DateTime?
+  
+  paymentId    String?
+  payment      Payment? @relation(fields: [paymentId], references: [id])
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  @@map("tickets")
+}
+
+enum TicketStatus {
+  PENDING
+  PAID
+  CANCELLED
+  REFUNDED
+  VALIDATED
+}
+
+model Payment {
+  id              String @id @default(cuid())
+  userId          String
+  user            User   @relation(fields: [userId], references: [id])
+  
+  amount          Int
+  currency        String @default("ARS")
+  paymentMethod   String // "mercadopago", "credit_card", "cash"
+  
+  // External payment data
+  externalPaymentId String?
+  paymentStatus     PaymentStatus @default(PENDING)
+  
+  // MercadoPago specific
+  preferenceId    String?
+  paymentData     Json?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  tickets         Ticket[]
+  
+  @@map("payments")
+}
+
+enum PaymentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+  REFUNDED
+}
+
+model GuestList {
+  id       String @id @default(cuid())
+  eventId  String
+  event    Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  
+  name     String
+  surname  String
+  dni      String
+  email    String?
+  phone    String?
+  
+  status   GuestStatus @default(CONFIRMED)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("guest_lists")
+}
+
+enum GuestStatus {
+  CONFIRMED
+  ATTENDED
+  NO_SHOW
+  CANCELLED
+}
+
+model Promotion {
+  id          String @id @default(cuid())
+  eventId     String?
+  event       Event?  @relation(fields: [eventId], references: [id])
+  
+  code        String @unique
+  name        String
+  description String?
+  
+  discountType   String // "percentage", "fixed_amount"
+  discountValue  Int
+  
+  maxUses        Int?
+  currentUses    Int @default(0)
+  
+  validFrom      DateTime
+  validUntil     DateTime
+  
+  isActive       Boolean @default(true)
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  @@map("promotions")
+}
+
+// Social Features - Previas
+model Previa {
+  id           String @id @default(cuid())
+  name         String
+  description  String
+  
+  hostId       String
+  host         User   @relation("PreviaHost", fields: [hostId], references: [id])
+  
+  // Location
+  address      String
+  latitude     Float?
+  longitude    Float?
+  city         String
+  
+  // Timing
+  scheduledDate DateTime
+  duration      Int? // minutes
+  
+  // Capacity
+  maxGuests     Int
+  currentGuests Int @default(1)
+  
+  // Pricing
+  entryPrice    Int @default(0)
+  requirements  String?
+  
+  // Access control
+  isPublic      Boolean @default(true)
+  requiresApproval Boolean @default(true)
+  accessCode    String?
+  
+  status        PreviaStatus @default(ACTIVE)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relations
+  members       PreviaMember[]
+  messages      PreviaChatMessage[]
+  joinRequests  PreviaJoinRequest[]
+  
+  @@map("previas")
+}
+
+enum PreviaStatus {
+  ACTIVE
+  FULL
+  CANCELLED
+  COMPLETED
+}
+
+model PreviaMember {
+  id       String @id @default(cuid())
+  previaId String
+  previa   Previa @relation(fields: [previaId], references: [id], onDelete: Cascade)
+  
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  joinedAt DateTime @default(now())
+  role     PreviaRole @default(MEMBER)
+  
+  @@unique([previaId, userId])
+  @@map("previa_members")
+}
+
+enum PreviaRole {
+  HOST
+  ADMIN
+  MEMBER
+}
+
+model PreviaChatMessage {
+  id       String @id @default(cuid())
+  previaId String
+  previa   Previa @relation(fields: [previaId], references: [id], onDelete: Cascade)
+  
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  message  String
+  messageType String @default("text") // "text", "image", "location"
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("previa_chat_messages")
+}
+
+model PreviaJoinRequest {
+  id       String @id @default(cuid())
+  previaId String
+  previa   Previa @relation(fields: [previaId], references: [id], onDelete: Cascade)
+  
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  message  String?
+  status   RequestStatus @default(PENDING)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@unique([previaId, userId])
+  @@map("previa_join_requests")
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+// Transportation - Combis
+model CombiGroup {
+  id            String @id @default(cuid())
+  name          String
+  
+  departure     String
+  destination   String
+  departureTime DateTime
+  
+  capacity      Int
+  currentPassengers Int @default(0)
+  pricePerPerson Int
+  
+  driverName    String
+  driverPhone   String?
+  driverRating  Float @default(5.0)
+  
+  status        CombiStatus @default(AVAILABLE)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  passengers    CombiPassenger[]
+  
+  @@map("combi_groups")
+}
+
+enum CombiStatus {
+  AVAILABLE
+  FULL
+  IN_TRANSIT
+  COMPLETED
+  CANCELLED
+}
+
+model CombiPassenger {
+  id          String @id @default(cuid())
+  combiId     String
+  combi       CombiGroup @relation(fields: [combiId], references: [id], onDelete: Cascade)
+  
+  userId      String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  hasPaid     Boolean @default(false)
+  boardingPoint String?
+  
+  joinedAt    DateTime @default(now())
+  
+  @@unique([combiId, userId])
+  @@map("combi_passengers")
+}
+
+// Reviews & Ratings
+model Review {
+  id       String @id @default(cuid())
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  venueId  String?
+  venue    Venue? @relation(fields: [venueId], references: [id])
+  
+  rating   Int    // 1-5 stars
+  comment  String?
+  
+  // Review validation
+  isVerified Boolean @default(false)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("reviews")
+}
+
+// AI & Recommendations
+model RecommendationLog {
+  id           String @id @default(cuid())
+  userId       String?
+  
+  eventId      String?
+  venueId      String?
+  
+  recommendationType String // "location", "preference", "ai"
+  score              Float
+  reasons            String[]
+  
+  wasClicked   Boolean @default(false)
+  wasAttended  Boolean @default(false)
+  
+  createdAt    DateTime @default(now())
+  
+  @@map("recommendation_logs")
+}
